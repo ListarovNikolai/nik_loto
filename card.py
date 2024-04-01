@@ -3,6 +3,14 @@
 """
 import random
 
+def init_card_numbers(count:int):
+    numbers = set()
+    while len(numbers) < count: 
+        numbers.add(random.randint(1, 91))
+    list_numbers = list(numbers)
+    return list_numbers
+
+
 class Card:
     def __init__(self) -> None:
         """
@@ -24,4 +32,4 @@ class Card:
 
 
     if __name__ == '__main__':
-        pass
+        print(init_card_numbers(15))
