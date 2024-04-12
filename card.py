@@ -8,7 +8,30 @@ def init_card_numbers(count:int):
     while len(numbers) < count: 
         numbers.add(random.randint(1, 91))
     list_numbers = list(numbers)
+    list_numbers.sort() 
     return list_numbers
+
+   
+
+def create_card(lines, positions, card_numbers, number_in_line):
+    card_symbals = []
+    for line in range(lines):
+        line_symbals = ["   " for _ in range(positions)]
+        set_position = set()   
+
+        #Выберем случайные позиции для чисел в строке:          
+        while len(set_position) < number_in_line:
+            set_position.add(random.randint(1, number_in_line + 1))
+        print(f"{set_position = }")
+
+        #Заполним линию числами из карточки:
+        for i in range(number_in_line):
+            line_symbals[i] = str(card_numbers.pop(0))
+            print(f"{card_numbers = }")
+
+def print_card(self):
+        for row in self.card_numbers:
+            print(row)
 
 
 class Card:
@@ -27,9 +50,15 @@ class Card:
         self.number_in_line = 5
         self.count = self.lines * self.number_in_line
         self.symbols = []
-        card_numbers = set()
-        
+        self.card_numbers = init_card_numbers(self.count)
+    
+
+    def __str__(self) -> str:
+         return str(self.card_numbers)
 
 
-    if __name__ == '__main__':
-        print(init_card_numbers(15))
+if __name__ == '__main__':
+    #print(init_card_numbers(15))
+    my_card = Card()
+    print(f"{my_card = }")
+    create_card(my_card.lines, my_card.positions, my_card.card_numbers, my_card.number_in_line)
