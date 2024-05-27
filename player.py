@@ -12,7 +12,13 @@ class Player(ABC):
             self.name = input("Введите имя игрока: ")
         self.is_computer = is_computer
         self.card = Card()
-        self.is_winner = False  
+        self.is_winner = False
+
+
+    @abstractmethod 
+    def move(self, number:int) -> None:
+        pass
+        
 
         
     def __str__(self):
@@ -23,6 +29,20 @@ class HumanPlayer(Player):
     
     def __init__(self, is_computer=False):
         super().__init__(is_computer)
+
+    
+    def move(self, number:int) -> None:
+        decision = input("Зачеркнуть число?(Y=да, N=нет)").lower()
+        if decision == "y":
+            #Попробуем вычеркнуть число
+            if number in self.card_numbers:
+                self.cross_out(number)
+            else:
+                print(f"Игрок пройграл: {self}")
+        else:
+            #Пропускаем ход
+            pass
+
 
 
 class ComputerPlayer(Player):
