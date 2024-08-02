@@ -1,11 +1,13 @@
 
+from unittest import result
 from keg import Keg
+from game import find_winners, game_over
 from player import HumanPlayer, ComputerPlayer
 
 
 if __name__ == '__main__':
-    my_bug = Keg()
-    print(f"Новый мешок: \n{my_bug}")
+    my_keg = Keg()
+    print(f"Новый мешок: \n{my_keg}")
     count_players = int(input("Сколько будет игроков: "))
     players = []
 
@@ -23,3 +25,18 @@ if __name__ == '__main__':
 
         players.append(player)
         print(player)
+
+
+    while not game_over(players):
+        next_number = my_keg.get_keg()
+        for player in players:
+            print(f"Ход делает: {player}")
+            player.move(next_number)
+            if player.is_looser:
+                #print(f" ====+++++**\n Начнем удаление игрока: {players}")
+                players.remove(player)
+                #print(f"Успешно удалили игрока: {player}\n Остались: {players} \n ====+++++**")
+
+    find_winners(players)
+
+print("Игра окончена")
