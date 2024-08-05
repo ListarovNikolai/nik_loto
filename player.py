@@ -4,7 +4,6 @@ from card import Card
 
 
 class Player(ABC):
-
     def __init__(self, is_computer=False):
         if is_computer:
             self.name = "computer"
@@ -23,15 +22,10 @@ class Player(ABC):
         pass
         
 
-        
-    
-
 class HumanPlayer(Player):
-    
     def __init__(self, is_computer=False):
         super().__init__(is_computer)
 
-    
     def move(self, number:int) -> None:
         decision = input("Зачеркнуть число?(Y=да, N=нет)").lower()
         if decision == "y":
@@ -52,13 +46,10 @@ class HumanPlayer(Player):
             print(f"Не вычеркиваем: ")
 
 
-
 class ComputerPlayer(Player):
-    
     def __init__(self, is_computer=True):
         super().__init__(is_computer)
         #self.is_playing = False
-        
 
     def move(self, number:int) -> None:
         if number in self.card.card_numbers:
@@ -66,16 +57,16 @@ class ComputerPlayer(Player):
             if len(self.card.card_numbers) == 0:
                     self.is_winner = True
                     print(f"Игрок {self.name} вычеркнул все числа: ")
-            
-class Tg_player(Player):
-    
-    def __init__(self, tg_name, is_computer=False):
+
+
+class TgPlayer(Player):
+    def __init__(self, tg_name, is_computer=True):
+        super().__init__(is_computer)
         self.name = tg_name
-        self.is_computer = is_computer
+        self.is_computer = False
         self.card = Card()
         self.is_looser = False
         self.is_winner = False
-
     
     def move(self, number:int) -> None:
         decision = input("Зачеркнуть число?(Y=да, N=нет)").lower()
@@ -101,8 +92,13 @@ class Tg_player(Player):
 
 if __name__ == '__main__':
     player1 = HumanPlayer()
-    print(f"Имя игрока: {player1}, {player1.is_computer =}")
-    print(f"Карточка: {player1.card}")
+    print(f"Имя игрока: {player1}{player1.is_computer =} \n\n")
+    # print(f"Карточка: {player1.card}")
+
     player2 = ComputerPlayer()
-    print(f"Компьюторный игрок: {player2}, {player2.is_computer =}")
-    print(f"Карточка: {player2.card}")
+    print(f"Компьюторный игрок: {player2}{player2.is_computer =} \n\n")
+    # print(f"Карточка: {player2.card}")
+
+    player3 = TgPlayer("tg_alex")
+    print(f"Имя игрока: {player3}{player3.is_computer =} \n\n")
+    # print(f"Карточка: {player3.card}")

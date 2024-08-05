@@ -26,7 +26,6 @@ if __name__ == '__main__':
         players.append(player)
         print(player)
 
-
     while not game_over(players):
         next_number = my_keg.get_keg()
         for player in players:
