@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from card import Card
+from nik_loto.card import Card
 
 
 class Player(ABC):
