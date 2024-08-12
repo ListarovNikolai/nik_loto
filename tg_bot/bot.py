@@ -7,8 +7,10 @@ from aiogram import Bot, Dispatcher, html
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart, Command
+from aiogram.fsm.scene import SceneRegistry
+from aiogram.fsm.storage.memory import SimpleEventIsolation
 from aiogram.types import Message
-from loto_scene import loto_router
+from loto_scene import loto_router, LotoScene
 
 # Bot token can be obtained via https://t.me/BotFather
 #TOKEN = getenv("BOT_TOKEN")
@@ -16,9 +18,10 @@ TOKEN = "7083709804:AAFTE_4lrhQpdIx1T_V22wdkBU80jOMxQ7M"
 
 # All handlers should be attached to the Router (or Dispatcher)
 
-dp = Dispatcher()
+dp = Dispatcher(events_isolation=SimpleEventIsolation(),)
 dp.include_router(loto_router)
-
+scene_registry = SceneRegistry(dp)
+scene_registry.add(LotoScene)
 
 @dp.message(CommandStart())
 async def command_start_handler(message: Message) -> None:
@@ -33,7 +36,7 @@ async def command_start_handler(message: Message) -> None:
     await message.answer(f"Привет, {html.bold(message.from_user.full_name)}!")
 
 
-@dp.message(Command("loto"))
+@dp.message(Command("start_loto"))
 async def start_loto (message: Message) -> None:
     """
     This handler receives messages with `/loto` command
@@ -46,19 +49,19 @@ async def start_loto (message: Message) -> None:
     await message.answer(f"Запускаем игру лото {html.bold(message.from_user.full_name)}!")
 
 
-@dp.message()
-async def echo_handler(message: Message) -> None:
-    """
-    Handler will forward receive a message back to the sender
-
-    By default, message handler will handle all message types (like a text, photo, sticker etc.)
-    """
-    try:
-        # Send a copy of the received message
-        await message.send_copy(chat_id=message.chat.id)
-    except TypeError:
-        # But not all the types is supported to be copied so need to handle it
-        await message.answer("Nice try!")
+# @dp.message()
+# async def echo_handler(message: Message) -> None:
+#     """
+#     Handler will forward receive a message back to the sender
+#
+#     By default, message handler will handle all message types (like a text, photo, sticker etc.)
+#     """
+#     try:
+#         # Send a copy of the received message
+#         await message.send_copy(chat_id=message.chat.id)
+#     except TypeError:
+#         # But not all the types is supported to be copied so need to handle it
+#         await message.answer("Nice try!")
 
 
 async def main() -> None:

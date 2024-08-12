@@ -31,7 +31,7 @@ class LotoScene(Scene, state="loto"):
 
     @on.message.enter()
     async def on_enter(self, message: Message, state: FSMContext, step: int | None = 0) -> Any:
-        
+        await message.answer(f"Добро пожаловать в игру лото1 {message.from_user.first_name}!")
         if not step:
             # This is the first step, so we should greet the user
             await message.answer(f"Добро пожаловать в игру лото {message.from_user.first_name}!")
