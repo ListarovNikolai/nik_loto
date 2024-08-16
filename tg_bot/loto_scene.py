@@ -28,18 +28,18 @@ class LotoScene(Scene, state="loto"):
     It handles the logic and flow of the loto game.
     """
 
-
     @on.message.enter()
     async def on_enter(self, message: Message, state: FSMContext, step: int | None = 0) -> Any:
-        await message.answer(f"Добро пожаловать в игру лото1 {message.from_user.first_name}!")
+        #await message.answer(f"Добро пожаловать в игру лото1 {message.from_user.first_name}!")
         if not step:
             # This is the first step, so we should greet the user
+            step = 0
             await message.answer(f"Добро пожаловать в игру лото {message.from_user.first_name}!")
 
         try:
             my_keg = Keg()
-            player = ComputerPlayer()
-            player = TgPlayer(message.from_user.first_name)
+            c_player = ComputerPlayer()
+            tg_player = TgPlayer(message.from_user.first_name)
             await message.answer(f"Новый мешок: \n{my_keg}")
         except Exception as e:
             await message.answer(f"Возникла ошибка: \n{e}")
@@ -52,12 +52,24 @@ class LotoScene(Scene, state="loto"):
             markup.button(text="🔙 Back")
         markup.button(text="🚫 Exit")
 
-        await state.update_data(step=step)
+        await state.update_data(step=step, my_keg=my_keg, c_player=c_player, tg_player=tg_player)
+        #await message.answer(c_player.card.__str__())
         return await message.answer(
-            text="Тут будет карточка",
+            text=tg_player.card.__str__(),
             reply_markup=markup.adjust(2).as_markup(resize_keyboard=True),
         )
-    
+
+    @on.message(F.text)
+    async def move_handler(self, message: Message, state: FSMContext) -> None:
+        """
+        Это обработчик хода
+
+        :param message:
+        :param state:
+        :return:
+        """
+        pass
+
 
     @on.message.exit()
     async def on_exit(self, message: Message, state: FSMContext) -> None:
@@ -76,35 +88,8 @@ class LotoScene(Scene, state="loto"):
         correct = 0
         incorrect = 0
         user_answers = []
-        for step, quiz in enumerate(QUESTIONS):
-            answer = answers.get(step)
-            is_correct = answer == quiz.correct_answer
-            if is_correct:
-                correct += 1
-                icon = "✅"
-            else:
-                incorrect += 1
-                icon = "❌"
-            if answer is None:
-                answer = "no answer"
-            user_answers.append(f"{quiz.text} ({icon} {html.quote(answer)})")
 
-        content = as_list(
-            as_section(
-                Bold("Your answers:"),
-                as_numbered_list(*user_answers),
-            ),
-            "",
-            as_section(
-                Bold("Summary:"),
-                as_list(
-                    as_key_value("Correct", correct),
-                    as_key_value("Incorrect", incorrect),
-                ),
-            ),
-        )
-
-        await message.answer(**content.as_kwargs(), reply_markup=ReplyKeyboardRemove())
+        await message.answer("Игра закончена", reply_markup=ReplyKeyboardRemove())
         await state.set_data({})
 
 loto_router = Router(name=__name__)
