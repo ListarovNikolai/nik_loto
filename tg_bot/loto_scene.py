@@ -40,36 +40,33 @@ class LotoScene(Scene, state="loto"):
             my_keg = Keg()
             c_player = ComputerPlayer()
             tg_player = TgPlayer(message.from_user.first_name)
-            await message.answer(f"Новый мешок: \n{my_keg}")
+            # await message.answer(f"Новый мешок: \n{my_keg}")
         except Exception as e:
             await message.answer(f"Возникла ошибка: \n{e}")
             return await self.wizard.exit()
 
+        next_number = my_keg.get_keg()
+        await message.answer(f"Выпал бочонок под номером {html.bold(next_number)}!")
         markup = ReplyKeyboardBuilder()
         #markup.add(*[KeyboardButton(text=answer.text) for answer in quiz.answers])
+        markup.button(text="✅ Да")
+        markup.button(text="❌ Нет")
 
         if step > 0:
             markup.button(text="🔙 Back")
         markup.button(text="🚫 Exit")
 
-        await state.update_data(step=step, my_keg=my_keg, c_player=c_player, tg_player=tg_player)
-        #await message.answer(c_player.card.__str__())
+        await state.update_data(step=step,
+                                my_keg=my_keg,
+                                c_player=c_player,
+                                tg_player=tg_player,
+                                next_number=next_number)
+
+        await message.answer(tg_player.card.__str__())
         return await message.answer(
-            text=tg_player.card.__str__(),
+            text="Зачеркнуть?",
             reply_markup=markup.adjust(2).as_markup(resize_keyboard=True),
         )
-
-    @on.message(F.text)
-    async def move_handler(self, message: Message, state: FSMContext) -> None:
-        """
-        Это обработчик хода
-
-        :param message:
-        :param state:
-        :return:
-        """
-        pass
-
 
     @on.message.exit()
     async def on_exit(self, message: Message, state: FSMContext) -> None:
@@ -91,6 +88,35 @@ class LotoScene(Scene, state="loto"):
 
         await message.answer("Игра закончена", reply_markup=ReplyKeyboardRemove())
         await state.set_data({})
+
+    @on.message(F.text=="✅ Да")
+    async def yes_handler(self, message: Message, state: FSMContext) -> None:
+        """
+        Это обработчик клавиши да
+
+        :param message:
+        :param state:
+        :return:
+        """
+        data = await state.get_data()
+        decision="y"
+        next_number = data.get("next_number")
+        tg_player = data.get("tg_player")
+        tg_player.move(next_number, decision)
+
+@on.message(F.text=="❌ Нет")
+    async def no_handler(self, message: Message, state: FSMContext) -> None:
+        """
+        Это обработчик хода
+
+        :param message:
+        :param state:
+        :return:
+        """
+        pass
+
+
+
 
 loto_router = Router(name=__name__)
 loto_router.message.register(LotoScene.as_handler(), Command("loto"))

@@ -17,9 +17,9 @@ class Player(ABC):
     def __str__(self):
         return f"Player: {self.name}\n{self.card}"
 
-    @abstractmethod 
-    def move(self, number:int) -> None:
-        pass
+    # @abstractmethod
+    # def move(self, number:int) -> None:
+    #     pass
         
 
 class HumanPlayer(Player):
@@ -68,8 +68,7 @@ class TgPlayer(Player):
         self.is_looser = False
         self.is_winner = False
     
-    def move(self, number:int) -> None:
-        decision = input("Зачеркнуть число?(Y=да, N=нет)").lower()
+    def move(self, number:int, decision:str) -> None:
         if decision == "y":
             #Попробуем вычеркнуть число
             if number in self.card.card_numbers:
