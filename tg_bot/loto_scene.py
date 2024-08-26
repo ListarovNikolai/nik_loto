@@ -16,6 +16,7 @@ from aiogram.utils.formatting import (
 )
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
+from nik_loto.game import game_over
 from nik_loto.keg import Keg
 from nik_loto.player import ComputerPlayer, HumanPlayer, TgPlayer
 
@@ -40,6 +41,7 @@ class LotoScene(Scene, state="loto"):
             my_keg = Keg()
             c_player = ComputerPlayer()
             tg_player = TgPlayer(message.from_user.first_name)
+            players = [c_player, tg_player]
             # await message.answer(f"Новый мешок: \n{my_keg}")
         except Exception as e:
             await message.answer(f"Возникла ошибка: \n{e}")
@@ -58,9 +60,8 @@ class LotoScene(Scene, state="loto"):
 
         await state.update_data(step=step,
                                 my_keg=my_keg,
-                                c_player=c_player,
-                                tg_player=tg_player,
-                                next_number=next_number)
+                                next_number=next_number,
+                                players=players)
 
         await message.answer(tg_player.card.__str__())
         return await message.answer(
@@ -98,13 +99,24 @@ class LotoScene(Scene, state="loto"):
         :param state:
         :return:
         """
+        decision = "y"
         data = await state.get_data()
-        decision="y"
         next_number = data.get("next_number")
-        tg_player = data.get("tg_player")
-        tg_player.move(next_number, decision)
+        players = data.get("players")
+        my_keg = data.get("my_keg")
+        c_player = players[0]
+        tg_player = players[1]
 
-@on.message(F.text=="❌ Нет")
+        tg_player.move(next_number, decision)
+        c_player.move(next_number)
+        players = [c_player, tg_player]
+        if game_over(players):
+            return await self.wizard.exit()
+        next_number = my_keg.get_keg()
+    #     TODO: Вывести ответ пользователю с клавиатурой, клавиатуру вывести в отдельный файл
+
+
+    @on.message(F.text=="❌ Нет")
     async def no_handler(self, message: Message, state: FSMContext) -> None:
         """
         Это обработчик хода
