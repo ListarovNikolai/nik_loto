@@ -16,9 +16,10 @@ from aiogram.utils.formatting import (
 )
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
-from nik_loto.game import game_over
+from nik_loto.game import game_over, find_winners
 from nik_loto.keg import Keg
 from nik_loto.player import ComputerPlayer, HumanPlayer, TgPlayer
+from tg_bot.keyboard import kb_answer
 
 
 class LotoScene(Scene, state="loto"):
@@ -49,15 +50,6 @@ class LotoScene(Scene, state="loto"):
 
         next_number = my_keg.get_keg()
         await message.answer(f"Выпал бочонок под номером {html.bold(next_number)}!")
-        markup = ReplyKeyboardBuilder()
-        #markup.add(*[KeyboardButton(text=answer.text) for answer in quiz.answers])
-        markup.button(text="✅ Да")
-        markup.button(text="❌ Нет")
-
-        if step > 0:
-            markup.button(text="🔙 Back")
-        markup.button(text="🚫 Exit")
-
         await state.update_data(step=step,
                                 my_keg=my_keg,
                                 next_number=next_number,
@@ -66,7 +58,7 @@ class LotoScene(Scene, state="loto"):
         await message.answer(tg_player.card.__str__())
         return await message.answer(
             text="Зачеркнуть?",
-            reply_markup=markup.adjust(2).as_markup(resize_keyboard=True),
+            reply_markup=kb_answer.adjust(2).as_markup(resize_keyboard=True),
         )
 
     @on.message.exit()
@@ -81,17 +73,23 @@ class LotoScene(Scene, state="loto"):
         :return:
         """
         data = await state.get_data()
-        answers = data.get("answers", {})
-
-        correct = 0
-        incorrect = 0
-        user_answers = []
-
+        players = data.get("players")
+        my_keg = data.get("my_keg")
+        step = data.get("step")
+        c_player = players[0]
+        tg_player = players[1]
+        winners = find_winners(players)
+        if len(winners) == 0:
+            await message.answer(f"{message.from_user.first_name}, Вы проиграли!", reply_markup=ReplyKeyboardRemove())
+        else:
+            for winner in winners:
+                await message.answer(f"{winner.name}, - ПОБЕДИТЕЛЬ!",
+                                     reply_markup=ReplyKeyboardRemove())
         await message.answer("Игра закончена", reply_markup=ReplyKeyboardRemove())
         await state.set_data({})
 
-    @on.message(F.text=="✅ Да")
-    async def yes_handler(self, message: Message, state: FSMContext) -> None:
+    @on.message(F.text == "✅ Да")
+    async def yes_handler(self, message: Message, state: FSMContext) -> Any:
         """
         Это обработчик клавиши да
 
@@ -104,20 +102,33 @@ class LotoScene(Scene, state="loto"):
         next_number = data.get("next_number")
         players = data.get("players")
         my_keg = data.get("my_keg")
+        step = data.get("step")
         c_player = players[0]
         tg_player = players[1]
 
         tg_player.move(next_number, decision)
         c_player.move(next_number)
         players = [c_player, tg_player]
+
         if game_over(players):
             return await self.wizard.exit()
+
         next_number = my_keg.get_keg()
-    #     TODO: Вывести ответ пользователю с клавиатурой, клавиатуру вывести в отдельный файл
+        step += 1
+        await message.answer(f"Выпал бочонок под номером {html.bold(next_number)}!")
+        await state.update_data(step=step,
+                                my_keg=my_keg,
+                                next_number=next_number,
+                                players=players)
 
+        await message.answer(tg_player.card.__str__())
+        return await message.answer(
+            text="Зачеркнуть?",
+            reply_markup=kb_answer.adjust(2).as_markup(resize_keyboard=True),
+        )
 
-    @on.message(F.text=="❌ Нет")
-    async def no_handler(self, message: Message, state: FSMContext) -> None:
+    @on.message(F.text == "❌ Нет")
+    async def no_handler(self, message: Message, state: FSMContext) -> Any:
         """
         Это обработчик хода
 
@@ -125,9 +136,35 @@ class LotoScene(Scene, state="loto"):
         :param state:
         :return:
         """
-        pass
+        decision = "n"
+        data = await state.get_data()
+        next_number = data.get("next_number")
+        players = data.get("players")
+        my_keg = data.get("my_keg")
+        step = data.get("step")
+        c_player = players[0]
+        tg_player = players[1]
 
+        tg_player.move(next_number, decision)
+        c_player.move(next_number)
+        players = [c_player, tg_player]
 
+        if game_over(players):
+            return await self.wizard.exit()
+
+        next_number = my_keg.get_keg()
+        step += 1
+        await message.answer(f"Выпал бочонок под номером {html.bold(next_number)}!")
+        await state.update_data(step=step,
+                                my_keg=my_keg,
+                                next_number=next_number,
+                                players=players)
+
+        await message.answer(tg_player.card.__str__())
+        return await message.answer(
+            text="Зачеркнуть?",
+            reply_markup=kb_answer.adjust(2).as_markup(resize_keyboard=True),
+        )
 
 
 loto_router = Router(name=__name__)
